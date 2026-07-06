@@ -1,3 +1,4 @@
+Vrijeme prezentacije: 5min
 ==============================================================
   MatPower Converter Plugin (mpconv4)
   dTwin plugin za analizu toka snage u pravougaonim koordinatama
