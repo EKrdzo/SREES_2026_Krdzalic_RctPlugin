@@ -1,0 +1,40 @@
+<?xml version='1.0'?>
+<DevRes>
+	<Translations>
+
+		<Res id="dlgSettings"         tr="Podešenja"/>
+		<Res id="lblLang"             tr="Trenutni jezik aplikacije:"/>
+		<Res id="lblLang2"            tr="Jezik aplikacije nakon restarta:"/>
+		<Res id="chbTBIcsAndLbls"     tr="Prikaži labele ispod ikona na alatnoj traci"/>
+		<Res id="RestartRequired"     tr="Restartovati aplikaciju"/>
+		<Res id="RestartRequiredInfo" tr="Neke od promijenjenih postavki zahtijevaju ponovni pokretanje"/>
+		<Res id="Restart"             tr="Restartovati"/>
+		<Res id="DoNoRestart"         tr="Nemoj restartovati"/>
+		<Res id="Normal"              tr="Normalno"/>
+		<Res id="Bold"                tr="Podebljano"/>
+		<Res id="Italic"              tr="Kurziv"/>
+		<Res id="BoldItalic"          tr="Podebljano kurziv"/>
+		<Res id="Underline"           tr="Podvučeno"/>
+		<Res id="ResetUnderline"      tr="Poništi podvlačenje"/>
+		<Res id="Subscript"           tr="Indeks"/>
+		<Res id="Superscript"         tr="Eksponent"/>
+		<Res id="ResetSupSuperscript" tr="Poništi eksponent"/>
+		<Res id="ResetColor"          tr="Poništi boju"/>
+		<Res id="IncreaseFont"        tr="Povećaj font"/>
+		<Res id="DecreaseFont"        tr="Smanji font"/>
+
+		<Res id="MatPower Converter Plugin"         tr="MatPower Konverter Plugin"/>
+		<Res id="Converter"                         tr="Konverter"/>
+		<Res id="Options"                           tr="Opcije"/>
+		<Res id="In File Name:"                     tr="Naziv ulaznog fajla:"/>
+		<Res id="Out File Name:"                    tr="Naziv izlaznog fajla:"/>
+		<Res id="Status:"                           tr="Status:"/>
+		<Res id="Info"                              tr="Info"/>
+		<Res id="Convert"                           tr="Konvertuj"/>
+		<Res id="Model name:"                       tr="Naziv modela:"/>
+		<Res id="openMCase"                         tr="Otvori MATPOWER case fajl (.m)"/>
+		<Res id="Case file (.m):"                   tr="Case fajl (.m):"/>
+		<Res id="createDmodl"                       tr="Sačuvaj digitalni model"/>
+
+	</Translations>
+</DevRes>

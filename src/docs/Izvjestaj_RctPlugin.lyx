@@ -1,0 +1,2776 @@
+#LyX 2.4 created this file. For more info see https://www.lyx.org/
+\lyxformat 620
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children no
+\language american
+\language_package default
+\inputencoding utf8
+\fontencoding auto
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_roman_osf false
+\font_sans_osf false
+\font_typewriter_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\float_placement class
+\float_alignment class
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_formatted_ref 0
+\use_minted 0
+\use_lineno 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tablestyle default
+\tracking_changes false
+\output_changes false
+\change_bars false
+\postpone_fragile_content true
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\docbook_table_output 0
+\docbook_mathml_prefix 1
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Plugin za konverziju MATPOWER modela i statičku analizu toka snage u pravougaonim koordinatama
+\end_layout
+
+\begin_layout Author
+Projekat uradio:
+ Emir Krdžalić
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Opis projekta
+\end_layout
+
+\begin_layout Standard
+Analiza toka snage (power flow) je jedan od osnovnih proračuna u elektroenergetici,
+ kojim se za zadano stacionarno stanje mreže (potrošnja,
+ proizvodnja i topologija) određuju naponi na svim sabirnicama.
+ Standardni alat za ovu vrstu proračuna u akademskom i istraživačkom okruženju je MATPOWER,
+ paket za MATLAB koji opisuje mrežu kroz tzv.
+ case fajl (.m).
+ Cilj ovog projekta je da se omogući korištenje ovakvih modela direktno u simulacionom okruženju dTwin,
+ bez potrebe za instaliranim MATLAB-om.
+\end_layout
+
+\begin_layout Standard
+U tu svrhu razvijen je dTwin plugin (interni naziv 
+\emph on
+mpconv4
+\emph default
+,
+ stavka u meniju 
+\begin_inset Quotes eld
+\end_inset
+
+RctPlugin
+\begin_inset Quotes erd
+\end_inset
+
+) koji:
+\end_layout
+
+\begin_layout Itemize
+učitava i parsira MATPOWER .m fajl (blokove 
+\family typewriter
+mpc.bus
+\family default
+,
+ 
+\family typewriter
+mpc.gen
+\family default
+ i 
+\family typewriter
+mpc.branch
+\family default
+),
+\end_layout
+
+\begin_layout Itemize
+na osnovu podataka o vodovima i transformatorima gradi kompleksnu admitansnu matricu mreže (Ybus),
+\end_layout
+
+\begin_layout Itemize
+generiše sistem nelinearnih algebarskih jednačina (NLEs) u pravougaonim koordinatama napona,
+ i
+\end_layout
+
+\begin_layout Itemize
+zapisuje sve u .dmodl fajl koji dTwin učitava i rješava internim Newton-Raphson rješavačem.
+\end_layout
+
+\begin_layout Standard
+Pravougaone koordinate napona su izabrane umjesto polarnih (magnituda/ugao) jer,
+ kao što će biti pokazano u nastavku,
+ vode do jednačina koje su algebarski jednostavnije (polinomske,
+ bez trigonometrijskih funkcija),
+ što je pogodnije za formulaciju u dTwin NLE modelu.
+\end_layout
+
+\begin_layout Standard
+Cjelokupna arhitektura sistema (parser 
+\begin_inset Formula $\rightarrow$
+\end_inset
+
+ gradnja Ybus 
+\begin_inset Formula $\rightarrow$
+\end_inset
+
+ generisanje .dmodl 
+\begin_inset Formula $\rightarrow$
+\end_inset
+
+ rješavanje u dTwin-u) prikazana je na slici 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:arhitektura"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename C:/Users/Emir/Desktop/SREES izvj/Slike/arhitektura_plugina.png
+	lyxscale 40
+	scale 40
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Arhitektura plugina:
+ tok podataka od .m fajla do rješenja u dTwin-u
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:arhitektura"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Cilj projekta
+\end_layout
+
+\begin_layout Standard
+Glavni cilj projekta je razvoj plugina i grafičkog interfejsa (GUI) za dTwin koji omogućava:
+\end_layout
+
+\begin_layout Itemize
+konverziju proizvoljnog MATPOWER case fajla u dTwin model (.dmodl) bez posrednog koraka kroz MATLAB,
+\end_layout
+
+\begin_layout Itemize
+rješavanje statičkog toka snage u pravougaonim koordinatama,
+ primjenom Newton-Raphsonove metode koju interno koristi dTwin,
+\end_layout
+
+\begin_layout Itemize
+jednostavno grafičko korisničko okruženje kroz koje se biraju ulazni/izlazni fajlovi i podešavaju parametri rješavača (broj iteracija,
+ tolerancija konvergencije),
+ i
+\end_layout
+
+\begin_layout Itemize
+provjeru ispravnosti implementacije poređenjem dobijenih napona sa referentnim MATPOWER rezultatima na standardnim IEEE test sistemima.
+\end_layout
+
+\begin_layout Standard
+Fokus rada je,
+ dakle,
+ na dvije cjeline:
+ matematičkom modelu koji stoji iza konverzije (formiranje Ybus matrice i NLE jednačina) i softverskoj implementaciji plugina,
+ uključujući GUI kroz koji korisnik upravlja cijelim procesom.
+\end_layout
+
+\begin_layout Section
+Matematički model toka snage u pravougaonim koordinatama
+\end_layout
+
+\begin_layout Subsection
+Reprezentacija napona i osnovna jednačina snage
+\end_layout
+
+\begin_layout Standard
+Za svaku sabirnicu 
+\begin_inset Formula $i$
+\end_inset
+
+ napon se u pravougaonim (Kartezijevim) koordinatama zapisuje kao
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+V_{i}=e_{i}+jf_{i},\qquad e_{i}=\mathrm{Re}(V_{i}),\quad f_{i}=\mathrm{Im}(V_{i})
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Injektovana kompleksna snaga na sabirnici 
+\begin_inset Formula $i$
+\end_inset
+
+ data je poznatim izrazom
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+S_{i}=P_{i}+jQ_{i}=V_{i}I_{i}^{*},\qquad I_{i}=\sum_{j}Y_{ij}V_{j}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+gdje je 
+\begin_inset Formula $Y_{ij}=G_{ij}+jB_{ij}$
+\end_inset
+
+ element admitansne matrice mreže (Ybus),
+ čija je gradnja objašnjena u narednoj podsekciji.
+ Cilj je izraziti 
+\begin_inset Formula $P_{i}$
+\end_inset
+
+ i 
+\begin_inset Formula $Q_{i}$
+\end_inset
+
+ direktno preko 
+\begin_inset Formula $e$
+\end_inset
+
+ i 
+\begin_inset Formula $f$
+\end_inset
+
+ komponenti,
+ čime se dobijaju jednačine koje su pogodne za Newton-Raphson rješavač.
+\end_layout
+
+\begin_layout Subsection
+Formiranje matrice admitansi mreže (Ybus)
+\end_layout
+
+\begin_layout Standard
+Ybus matrica se formira jednom,
+ u pred-obradi (funkcija 
+\family typewriter
+buildY
+\family default
+),
+ iz podataka o vodovima i transformatorima (blok 
+\family typewriter
+mpc.branch
+\family default
+),
+ koristeći opći 
+\begin_inset Formula $\pi$
+\end_inset
+
+-model grane sa transformatorskim odnosom.
+ Za granu koja povezuje sabirnice 
+\begin_inset Formula $fi$
+\end_inset
+
+ (from) i 
+\begin_inset Formula $ti$
+\end_inset
+
+ (to),
+ sa serijskom impedansom 
+\begin_inset Formula $r+jx$
+\end_inset
+
+,
+ šant susceptansom 
+\begin_inset Formula $b$
+\end_inset
+
+,
+ odnosom transformacije 
+\begin_inset Formula $tap$
+\end_inset
+
+ i faznim pomakom 
+\begin_inset Formula $shift$
+\end_inset
+
+,
+ definišu se pomoćne veličine
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+a=tap\cdot e^{j\cdot shift},\qquad y_{s}=\frac{1}{r+jx},\qquad y_{b}=\frac{jb}{2}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+koje se zatim raspodjeljuju u odgovarajuće elemente Ybus matrice na sljedeći način:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Y_{fi,fi}\mathrel{+}=\frac{y_{s}+y_{b}}{\left|a\right|^{2}},\qquad Y_{ti,ti}\mathrel{+}=y_{s}+y_{b}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Y_{fi,ti}\mathrel{+}=-\frac{y_{s}}{a^{*}},\qquad Y_{ti,fi}\mathrel{+}=-\frac{y_{s}}{a}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Dodatno,
+ svaka sabirnica može imati vlastitu šant admitansu (blok 
+\family typewriter
+mpc.bus
+\family default
+,
+ kolone 
+\family typewriter
+Gs
+\family default
+,
+ 
+\family typewriter
+Bs
+\family default
+),
+ koja se,
+ svedena na baznu snagu (
+\family typewriter
+baseMVA
+\family default
+),
+ dodaje na dijagonalu:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Y_{i,i}\mathrel{+}=\frac{G_{s,i}}{baseMVA}+j\frac{B_{s,i}}{baseMVA}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Ovim postupkom,
+ ponavljanim za sve grane i sve sabirnice,
+ dobija se kompletna,
+ rijetka (sparse) admitansna matrica 
+\begin_inset Formula $Y_{ij}=G_{ij}+jB_{ij}$
+\end_inset
+
+,
+ koja se u kodu čuva u strukturi 
+\family typewriter
+sparse::ICmplxMatrix
+\family default
+ i dalje se ne mijenja tokom iterativnog rješavanja.
+\end_layout
+
+\begin_layout Subsection
+Izvođenje jednačina snage u pravougaonim koordinatama
+\end_layout
+
+\begin_layout Standard
+Polazeći od 
+\begin_inset Formula $I_{i}=\sum_{j}Y_{ij}V_{j}$
+\end_inset
+
+ i uvrštavanjem 
+\begin_inset Formula $Y_{ij}=G_{ij}+jB_{ij}$
+\end_inset
+
+,
+ 
+\begin_inset Formula $V_{j}=e_{j}+jf_{j}$
+\end_inset
+
+,
+ konjugovana struja glasi
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+I_{i}^{*}=\sum_{j}\left[(G_{ij}e_{j}-B_{ij}f_{j})-j(G_{ij}f_{j}+B_{ij}e_{j})\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Uvrštavanjem u 
+\begin_inset Formula $S_{i}=(e_{i}+jf_{i})\cdot I_{i}^{*}$
+\end_inset
+
+ i razdvajanjem realnog i imaginarnog dijela,
+ dobijaju se opće jednačine injektovane aktivne i reaktivne snage,
+ izražene isključivo preko 
+\begin_inset Formula $e$
+\end_inset
+
+ i 
+\begin_inset Formula $f$
+\end_inset
+
+ komponenti napona:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P_{i}=\sum_{j}\left[G_{ij}(e_{i}e_{j}+f_{i}f_{j})-B_{ij}(e_{i}f_{j}-f_{i}e_{j})\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Q_{i}=\sum_{j}\left[G_{ij}(f_{i}e_{j}-e_{i}f_{j})-B_{ij}(e_{i}e_{j}+f_{i}f_{j})\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Ove jednačine su isključivo polinomske (kvadratne) po 
+\begin_inset Formula $e$
+\end_inset
+
+ i 
+\begin_inset Formula $f$
+\end_inset
+
+,
+ bez sinusa i kosinusa koji bi se javili u polarnoj formulaciji —
+ to je i osnovni razlog zašto je plugin implementiran u pravougaonim,
+ a ne u polarnim koordinatama.
+\end_layout
+
+\begin_layout Subsection
+Nelinearne jednačine (NLEs) po tipu sabirnice
+\end_layout
+
+\begin_layout Standard
+Funkcija 
+\family typewriter
+writeDmodl
+\family default
+ iz gore izvedenih opštih izraza generiše konkretne jednačine za svaku sabirnicu,
+ u zavisnosti od njenog tipa (kolona 
+\family typewriter
+type
+\family default
+ u 
+\family typewriter
+mpc.bus
+\family default
+).
+ Prije toga,
+ iz podataka o generatorima i potrošnji (
+\family typewriter
+mpc.gen
+\family default
+,
+ 
+\family typewriter
+mpc.bus
+\family default
+),
+ svedenih na baznu snagu,
+ računaju se poznate injekcije:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P_{i}^{sp}=\frac{\sum P_{g}-P_{d,i}}{baseMVA},\qquad Q_{i}^{sp}=\frac{\sum Q_{g}-Q_{d,i}}{baseMVA}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+PQ sabirnica
+\series default
+ (tip 1,
+ potrošačka) —
+ nepoznate su 
+\begin_inset Formula $e_{i}$
+\end_inset
+
+ i 
+\begin_inset Formula $f_{i}$
+\end_inset
+
+,
+ pa se postavljaju dvije jednačine (aktivna i reaktivna snaga moraju biti jednake zadanim vrijednostima):
+\begin_inset Formula 
+\[
+P_{i}=P_{i}^{sp},\qquad Q_{i}=Q_{i}^{sp}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+PV sabirnica
+\series default
+ (tip 2,
+ generatorska sa regulacijom napona) —
+ poznata je proizvedena aktivna snaga i zadana magnituda napona 
+\begin_inset Formula $V_{i}^{sp}$
+\end_inset
+
+,
+ pa se postavlja jednačina aktivne snage i uslov fiksirane magnitude napona (reaktivna snaga 
+\begin_inset Formula $Q_{i}$
+\end_inset
+
+ se ne fiksira,
+ već se dobija u post-obradi):
+\begin_inset Formula 
+\[
+P_{i}=P_{i}^{sp},\qquad e_{i}^{2}+f_{i}^{2}=\left(V_{i}^{sp}\right)^{2}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Slack (balansna) sabirnica
+\series default
+ (tip 3) —
+ magnituda i ugao napona su fiksirani i unaprijed poznati,
+ pa 
+\begin_inset Formula $e_{slack}$
+\end_inset
+
+ i 
+\begin_inset Formula $f_{slack}$
+\end_inset
+
+ nisu nepoznate,
+ već se u .dmodl fajlu zapisuju kao 
+\family typewriter
+Params
+\family default
+ i ne ulaze u sistem NLE jednačina.
+ Ova sabirnica pokriva razliku (gubitke) u ukupnom bilansu snage mreže.
+\end_layout
+
+\begin_layout Standard
+Sistem koji rješava dTwin sadrži,
+ dakle,
+ po dvije jednačine za svaku PQ sabirnicu i po dvije za svaku PV sabirnicu (ukupno 
+\begin_inset Formula $2(n-1)$
+\end_inset
+
+ jednačina za mrežu sa 
+\begin_inset Formula $n$
+\end_inset
+
+ sabirnica,
+ od kojih je jedna slack),
+ što je tačno onoliko koliko je nepoznatih 
+\begin_inset Formula $e_{i},f_{i}$
+\end_inset
+
+ komponenti.
+ Nakon konvergencije,
+ u post-obradi se iz dobijenih napona računaju izvedene veličine:
+ reaktivna snaga generatora na PV sabirnicama,
+ snaga slack sabirnice (koja pokriva gubitke) i polarni oblik napona (magnituda i ugao) radi lakše interpretacije rezultata.
+\end_layout
+
+\begin_layout Section
+Arhitektura i implementacija koda
+\end_layout
+
+\begin_layout Standard
+Plugin je organizovan kao natID/dTwin dodatak koji se kompajlira u dinamičku biblioteku 
+\family typewriter
+mpconv4.dll
+\family default
+ (CMake target definisan u 
+\family typewriter
+MatPowerPlugin4.cmake
+\family default
+,
+ solution 
+\family typewriter
+MatPowerPlugin4Sol
+\family default
+ definisan u 
+\family typewriter
+CMakeLists.txt
+\family default
+).
+ Struktura izvornog koda je sljedeća:
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+src/MatPowerPlugin.h
+\family default
+ —
+ definicija strukture 
+\family typewriter
+Options
+\family default
+ (podešavanja rješavača) i PLUGIN_API makroa;
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+src/MatPowerPlugin.cpp
+\family default
+ —
+ parser MATPOWER fajla,
+ gradnja Ybus matrice,
+ generisanje NLE jednačina i implementacija plugin klase;
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+src/ViewConv.h
+\family default
+ —
+ GUI Converter taba;
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+src/ViewOptions.h
+\family default
+ —
+ GUI Options taba;
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+src/TabView.h
+\family default
+ —
+ kontejner koji objedinjuje oba taba;
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+src/WindowPlugin.h
+\family default
+ —
+ glavni prozor plugina.
+\end_layout
+
+\begin_layout Standard
+Plugin prema dTwin-u nastupa kroz standardni interfejs 
+\family typewriter
+sc::IPlugin
+\family default
+,
+ pri čemu metoda 
+\family typewriter
+getMenuName()
+\family default
+ vraća naziv koji se prikazuje u meniju dTwin-a (
+\begin_inset Quotes eld
+\end_inset
+
+RctPlugin
+\begin_inset Quotes erd
+\end_inset
+
+).
+ Za rad sa fajlovima i memorijom koriste se natID biblioteke 
+\family typewriter
+fo::*
+\family default
+ (čitanje/pisanje fajlova),
+ 
+\family typewriter
+arch::MemoryOut
+\family default
+ (in-memory bafer za .dmodl sadržaj),
+ 
+\family typewriter
+cnt::PushBackVector
+\family default
+ (tokenizacija) i 
+\family typewriter
+mu::ScopedCLocale
+\family default
+ (ispravno parsiranje decimalnih brojeva bez obzira na regionalne postavke sistema).
+\end_layout
+
+\begin_layout Subsection
+Parsiranje MATPOWER fajla —
+ 
+\family typewriter
+parseMFile
+\end_layout
+
+\begin_layout Standard
+MATPOWER .m fajl se čita liniju po liniju (
+\family typewriter
+fo::InFile
+\family default
+,
+ 
+\family typewriter
+fo::getLine
+\family default
+) i traže se tri karakteristična bloka:
+ 
+\family typewriter
+mpc.bus
+\family default
+,
+ 
+\family typewriter
+mpc.gen
+\family default
+ i 
+\family typewriter
+mpc.branch
+\family default
+.
+ Za svaki blok se iz svake linije tokenizacijom izvlače numerički podaci u interne strukture:
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Bus:
+
+\series default
+ identifikator,
+ tip sabirnice (1 = PQ,
+ 2 = PV,
+ 3 = slack),
+ aktivna/reaktivna potrošnja 
+\begin_inset Formula $P_{d}$
+\end_inset
+
+,
+ 
+\begin_inset Formula $Q_{d}$
+\end_inset
+
+,
+ šant provodnost/susceptansa 
+\begin_inset Formula $G_{s}$
+\end_inset
+
+,
+ 
+\begin_inset Formula $B_{s}$
+\end_inset
+
+,
+ te početna magnituda i ugao napona 
+\begin_inset Formula $V_{m}$
+\end_inset
+
+,
+ 
+\begin_inset Formula $V_{a}$
+\end_inset
+
+;
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Gen:
+
+\series default
+ sabirnica na kojoj se generator nalazi,
+ proizvedena aktivna/reaktivna snaga 
+\begin_inset Formula $P_{g}$
+\end_inset
+
+,
+ 
+\begin_inset Formula $Q_{g}$
+\end_inset
+
+ i zadani napon 
+\begin_inset Formula $V_{g}$
+\end_inset
+
+;
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Branch:
+
+\series default
+ sabirnice from/to,
+ parametri 
+\begin_inset Formula $r,x,b$
+\end_inset
+
+,
+ odnos transformacije 
+\begin_inset Formula $tap$
+\end_inset
+
+,
+ fazni pomak 
+\begin_inset Formula $shift$
+\end_inset
+
+ i status grane (u/van pogona).
+\end_layout
+
+\begin_layout Standard
+Bitno je napomenuti da MATLAB nije potreban ni u jednom trenutku —
+ plugin direktno parsira tekstualni sadržaj .m fajla,
+ što ga čini potpuno samostalnim alatom.
+\end_layout
+
+\begin_layout Subsection
+Gradnja Ybus matrice —
+ 
+\family typewriter
+buildY
+\end_layout
+
+\begin_layout Standard
+Na osnovu podataka o granama i sabirnicama,
+ funkcija 
+\family typewriter
+buildY
+\family default
+ primjenjuje formule izvedene u sekciji 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:arhitektura"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ (
+\begin_inset Formula $\pi$
+\end_inset
+
+-model,
+ šant admitanse) i popunjava rijetku kompleksnu matricu tipa 
+\family typewriter
+sparse::ICmplxMatrix
+\family default
+,
+ uz RAII upravljanje resursima kroz 
+\family typewriter
+sparse::CmplxMatrixReleaser
+\family default
+.
+ Matrica se računa samo jednom,
+ prije generisanja jednačina,
+ jer se njeni elementi ne mijenjaju tokom iterativnog Newton-Raphson postupka koji se izvršava kasnije,
+ unutar dTwin-a.
+\end_layout
+
+\begin_layout Subsection
+Generisanje .dmodl fajla —
+ 
+\family typewriter
+writeDmodl
+\end_layout
+
+\begin_layout Standard
+Poslednji korak konverzije je zapisivanje kompletnog modela u dTwin-ov tekstualni format (.dmodl),
+ kroz in-memory bafer 
+\family typewriter
+arch::MemoryOut
+\family default
+ koji se na kraju snima na disk pomoću 
+\family typewriter
+fo::createTextFile
+\family default
+.
+ Fajl je organizovan u sljedeće blokove:
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Header
+\series default
+ —
+ globalna podešavanja rješavača (
+\family typewriter
+maxIter
+\family default
+,
+ 
+\family typewriter
+report
+\family default
+,
+ 
+\family typewriter
+maxReps
+\family default
+,
+ 
+\family typewriter
+outToTxt
+\family default
+),
+ preuzeta iz Options taba GUI-a;
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Vars
+\series default
+ —
+ nepoznate 
+\begin_inset Formula $e_{i},f_{i}$
+\end_inset
+
+ za sve sabirnice osim slack,
+ sa početnom pretpostavkom (obično 
+\begin_inset Formula $e_{i}=1,f_{i}=0$
+\end_inset
+
+) potrebnom iterativnom rješavaču;
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Params
+\series default
+ —
+ fiksni slack napon,
+ svi elementi Ybus matrice (
+\family typewriter
+G_i_j
+\family default
+,
+ 
+\family typewriter
+B_i_j
+\family default
+) i sve poznate injekcije snaga (
+\family typewriter
+P_i
+\family default
+,
+ 
+\family typewriter
+Q_i
+\family default
+,
+ 
+\family typewriter
+Vsp2_i
+\family default
+);
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+NLEs
+\series default
+ —
+ konkretne jednačine iz sekcije 3.4,
+ po jedna,
+ odnosno dvije,
+ za svaku sabirnicu ovisno o njenom tipu.
+\end_layout
+
+\begin_layout Standard
+Ovako generisan .dmodl fajl dTwin učitava i rješava svojim internim Newton-Raphson rješavačem,
+ pri čemu su 
+\family typewriter
+Max iters
+\family default
+ i 
+\family typewriter
+eps
+\family default
+ (podešeni kroz GUI) direktna podešavanja tog rješavača.
+\end_layout
+
+\begin_layout Section
+Grafički interfejs (GUI) i uputstvo za korištenje
+\end_layout
+
+\begin_layout Standard
+Nakon uspješnog build-a (Release x64) i kopiranja 
+\family typewriter
+mpconv4.dll
+\family default
+ u folder dTwin plugin-a,
+ u glavnom meniju dTwin-a se pojavljuje nova stavka,
+ 
+\begin_inset Quotes eld
+\end_inset
+
+RctPlugin
+\begin_inset Quotes erd
+\end_inset
+
+ (slika 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:dtwin-meni"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+),
+ čijim se pokretanjem otvara glavni prozor plugina (
+\family typewriter
+WindowPlugin
+\family default
+,
+ dimenzija 800x300),
+ sa dva taba:
+ 
+\emph on
+Converter
+\emph default
+ i 
+\emph on
+Options
+\emph default
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename C:/Users/Emir/Desktop/SREES izvj/Slike/dtwin_meni.png
+	width 10cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Stavka 
+\begin_inset Quotes eld
+\end_inset
+
+RctPlugin
+\begin_inset Quotes erd
+\end_inset
+
+ u glavnom meniju dTwin-a
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:dtwin-meni"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Converter tab
+\end_layout
+
+\begin_layout Standard
+Converter tab je glavni radni prostor plugina i sadrži:
+\end_layout
+
+\begin_layout Itemize
+polje 
+\series bold
+Import model (.m)
+\series default
+ sa dugmetom 
+\begin_inset Quotes eld
+\end_inset
+
+...
+\begin_inset Quotes erd
+\end_inset
+
+ za odabir MATPOWER case fajla —
+ odabirom fajla plugin automatski prelazi u 
+\series bold
+Convert
+\series default
+ mod;
+\end_layout
+
+\begin_layout Itemize
+polje 
+\series bold
+Load model / Save as
+\series default
+ sa dugmetom 
+\begin_inset Quotes eld
+\end_inset
+
+...
+\begin_inset Quotes erd
+\end_inset
+
+,
+ čija se labela dinamički mijenja:
+ u Convert modu postaje 
+\begin_inset Quotes eld
+\end_inset
+
+Save as:
+\begin_inset Quotes erd
+\end_inset
+
+ (upisuje se ime izlaznog .dmodl fajla),
+ a kada je ovo polje prazno,
+ ostaje 
+\begin_inset Quotes eld
+\end_inset
+
+Load model:
+\begin_inset Quotes erd
+\end_inset
+
+ (za odabir postojećeg .dmodl fajla);
+\end_layout
+
+\begin_layout Itemize
+statusnu liniju sa porukom o uspjehu ili grešci posljednje operacije;
+\end_layout
+
+\begin_layout Itemize
+dugmad 
+\series bold
+Info
+\series default
+ (provjera postojanja odabranog fajla),
+ 
+\series bold
+Load
+\series default
+ (učitavanje postojećeg .dmodl direktno u dTwin,
+ aktivno samo u Load modu),
+ 
+\series bold
+Convert
+\series default
+ (parsiranje .m,
+ gradnja Ybus,
+ generisanje i automatsko učitavanje .dmodl,
+ aktivno samo u Convert modu) i 
+\series bold
+Cancel
+\series default
+ (brisanje svih polja i povratak u početno stanje).
+\end_layout
+
+\begin_layout Standard
+U nastavku su prikazana tri karakteristična stanja Converter taba:
+ početno stanje,
+ stanje nakon odabira ulaznog .m fajla (Convert mod) i stanje kada je odabran postojeći model za učitavanje (Load mod).
+\end_layout
+
+\begin_layout Standard
+Na slici 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:converter-tab-pocetno"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ prikazano je početno stanje Converter taba,
+ prije bilo kakvog odabira fajla —
+ oba polja su prazna,
+ a dugmad 
+\series bold
+Load
+\series default
+ i 
+\series bold
+Convert
+\series default
+ su neaktivna.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename C:/Users/Emir/Desktop/SREES izvj/Slike/converter_tab.png
+	width 12cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Početno stanje Converter taba (prazna polja)
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:converter-tab-pocetno"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Na slici 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:converter-tab-convert"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ prikazan je Converter tab nakon što je u polje 
+\series bold
+Import model (.m)
+\series default
+ odabran ulazni MATPOWER case fajl.
+ Plugin je automatski prešao u 
+\series bold
+Convert
+\series default
+ mod,
+ pa se labela drugog polja promijenila u 
+\begin_inset Quotes eld
+\end_inset
+
+Save as:
+\begin_inset Quotes erd
+\end_inset
+
+,
+ a dugme 
+\series bold
+Convert
+\series default
+ je postalo aktivno.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename C:/Users/Emir/Desktop/SREES izvj/Slike/converter_m_tab.png
+	width 12cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Converter tab u Convert modu —
+ odabran ulazni .m fajl,
+ polje za izlaz postaje 
+\begin_inset Quotes eld
+\end_inset
+
+Save as:
+\begin_inset Quotes erd
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:converter-tab-convert"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Na slici 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:converter-tab-load"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ prikazan je Converter tab u 
+\series bold
+Load
+\series default
+ modu:
+ polje 
+\begin_inset Quotes eld
+\end_inset
+
+Import model (.m):
+\begin_inset Quotes erd
+\end_inset
+
+ je prazno,
+ dok je u drugo polje (labela 
+\begin_inset Quotes eld
+\end_inset
+
+Load model:
+\begin_inset Quotes erd
+\end_inset
+
+) odabran postojeći .dmodl fajl,
+ čime se aktivira dugme 
+\series bold
+Load
+\series default
+ za direktno učitavanje modela u dTwin,
+ bez ponovne konverzije.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename C:/Users/Emir/Desktop/SREES izvj/Slike/converter_d_tab.png
+	width 12cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Converter tab u Load modu —
+ odabran postojeći .dmodl fajl za učitavanje
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:converter-tab-load"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Options tab
+\end_layout
+
+\begin_layout Standard
+Options tab (slika 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:options-tab"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) sadrži podešavanja koja se upisuju u header generisanog .dmodl fajla:
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Model name
+\series default
+ —
+ naziv koji se upisuje u header .dmodl fajla;
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Max iters
+\series default
+ —
+ maksimalan broj Newton-Raphson iteracija (podrazumijevano 100);
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+eps
+\series default
+ —
+ tolerancija konvergencije rješavača (podrazumijevano 
+\begin_inset Formula $10^{-6}$
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename C:/Users/Emir/Desktop/SREES izvj/Slike/options_tab.png
+	width 12cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Izgled Options taba
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:options-tab"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Tipičan tok rada
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+A) Nova konverzija (.m 
+\begin_inset Formula $\rightarrow$
+\end_inset
+
+ .dmodl):
+
+\series default
+ odabere se ulazni .m fajl (npr.
+ 
+\family typewriter
+case14.m
+\family default
+),
+ plugin automatski prelazi u Convert mod,
+ upiše se ime izlaznog fajla (ili se odabere lokacija preko 
+\begin_inset Quotes eld
+\end_inset
+
+...
+\begin_inset Quotes erd
+\end_inset
+
+),
+ po potrebi se podese Options,
+ te se klikne 
+\series bold
+Convert
+\series default
+ —
+ dTwin automatski učitava i rješava dobijeni model.
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+B) Učitavanje postojećeg modela:
+
+\series default
+ u polje 
+\begin_inset Quotes eld
+\end_inset
+
+Load model:
+\begin_inset Quotes erd
+\end_inset
+
+ upiše se (ili odabere) putanja do postojećeg .dmodl fajla,
+ te se klikne 
+\series bold
+Load
+\series default
+ —
+ model se učitava bez ponovne konverzije.
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+C) Resetovanje:
+
+\series default
+ klikom na 
+\series bold
+Cancel
+\series default
+ se čiste sva polja i plugin se vraća u početno stanje.
+\end_layout
+
+\begin_layout Section
+Testiranje i rezultati
+\end_layout
+
+\begin_layout Standard
+Implementacija je testirana na dva standardna IEEE test sistema:
+ 
+\family typewriter
+case9.m
+\family default
+ (9 sabirnica) i 
+\family typewriter
+case14.m
+\family default
+ (14 sabirnica).
+ U oba slučaja rješavač je konvergirao za samo 2 iteracije,
+ a dobijeni naponi (magnituda i ugao) se poklapaju sa referentnim rezultatima MATPOWER-a,
+ čime je potvrđena ispravnost implementiranog matematičkog modela (gradnje Ybus matrice i NLE jednačina) i samog parsera.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename C:/Users/Emir/Desktop/SREES izvj/Slike/C9.png
+	lyxscale 41
+	width 13cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Rezultati konverzije i rješavanja za 
+\family typewriter
+case9.m
+\family default
+ (IEEE 9-bus) u dTwin-u
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:rezultat-case9"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Tabela 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:rezultati-case9"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ sumira dobijene vrijednosti napona u pravougaonim koordinatama (e,
+ f),
+ direktno kako je ispisano iz dTwin-a,
+ za svih devet sabirnica sistema 
+\family typewriter
+case9.m
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+placement H
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Rezultati napona po sabirnicama za 
+\family typewriter
+case9.m
+\family default
+
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:rezultati-case9"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="10" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Sabirnica
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+e [p.u.]
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+f [p.u.]
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1 (slack)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.01236
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.160449
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.02208
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0772647
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.994141
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.0413491
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.987043
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.0692055
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+6
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.0258
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0288117
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.00921
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.00648792
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+8
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.0173
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.0606009
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.96908
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.0732496
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename C:/Users/Emir/Desktop/SREES izvj/Slike/C14.png
+	lyxscale 41
+	width 13cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Rezultati konverzije i rješavanja za 
+\family typewriter
+case14.m
+\family default
+ (IEEE 14-bus) u dTwin-u
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:rezultat-case14"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Tabela 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:rezultati-case14"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ sumira dobijene vrijednosti napona u pravougaonim koordinatama (e,
+ f),
+ direktno kako je ispisano iz dTwin-a,
+ za svih 14 sabirnica sistema 
+\family typewriter
+case14.m
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+placement H
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Rezultati napona po sabirnicama za 
+\family typewriter
+case14.m
+\family default
+
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:rezultati-case14"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="15" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Sabirnica
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+e [p.u.]
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+f [p.u.]
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1 (slack)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.06
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.04105
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.0907614
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.985193
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.222476
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.00123
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.182187
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.00758
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.155511
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+6
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.03721
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.262858
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.03279
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.245277
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+8
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.0605
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.251858
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.02024
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.272201
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+10
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.01471
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.273738
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+11
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.02189
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.269815
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+12
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.01887
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.274447
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+13
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.01385
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.274625
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+14
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.995247
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-0.286015
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Zaključak
+\end_layout
+
+\begin_layout Standard
+Razvijeni plugin uspješno povezuje MATPOWER format opisa elektroenergetske mreže sa dTwin simulacionim okruženjem,
+ bez potrebe za MATLAB-om.
+ Izvođenjem jednačina toka snage u pravougaonim koordinatama dobijen je isključivo polinomski sistem NLE jednačina,
+ pogodan za brzu i pouzdanu konvergenciju Newton-Raphson rješavača,
+ što je i potvrđeno testiranjem na IEEE 9-bus i 14-bus sistemima.
+ Grafički interfejs (Converter i Options tab) korisniku omogućava jednostavno upravljanje cijelim procesom konverzije i rješavanja,
+ bez potrebe za poznavanjem internog formata .dmodl fajla.
+\end_layout
+
+\end_body
+\end_document
